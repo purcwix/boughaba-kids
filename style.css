@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+
+:root {
+  --green: #28a745;
+  --blue: #007bff;
+  --light-bg: #f9f9f9;
+  --dark-bg: #1b1b1b;
+  --light-text: #222;
+  --dark-text: #eee;
+  --card-bg-light: #fff;
+  --card-bg-dark: #333;
+}
+
+body {
+  font-family: "Cairo", sans-serif;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  background: var(--light-bg);
+  color: var(--light-text);
+  transition: background 0.3s, color 0.3s;
+}
+
+body.dark {
+  background: var(--dark-bg);
+  color: var(--dark-text);
+}
+
+/* Header */
+.topbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding: 10px;
+  background: linear-gradient(to right, var(--green), var(--blue));
+  color: white;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  margin-left: 10px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2em;
+}
+.boughaba { color: var(--green); }
+.kids { color: var(--blue); }
+
+#settings-btn {
+  position: absolute;
+  left: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  color: white;
+  cursor: pointer;
+}
+
+/* Settings panel */
+#settings-panel {
+  background: var(--card-bg-light);
+  border: 2px solid #ccc;
+  padding: 15px;
+  margin: 15px auto;
+  width: 300px;
+  border-radius: 10px;
+}
+body.dark #settings-panel {
+  background: var(--card-bg-dark);
+}
+
+/* Menu */
+.menu {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 30px;
+}
+.menu-btn {
+  display: inline-block;
+  margin: 10px;
+  padding: 20px 30px;
+  background: var(--card-bg-light);
+  border: 2px solid #88c;
+  border-radius: 15px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: bold;
+  font-size: 1.2em;
+  transition: transform 0.2s, background 0.2s;
+}
+.menu-btn:hover {
+  background: #e8f3ff;
+  transform: scale(1.05);
+}
+body.dark .menu-btn {
+  background: var(--card-bg-dark);
+  border-color: #666;
+}
+
+/* Misc */
+.welcome-text {
+  margin-top: 20px;
+  font-size: 1.1em;
+}
+
+footer {
+  margin-top: 50px;
+  font-size: 0.9em;
+  color: #666;
+}

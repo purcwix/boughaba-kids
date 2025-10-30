@@ -1,0 +1,125 @@
+<!-- lessons & quizzes -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📘 الدروس | Boughaba Kids</title>
+  <link rel="stylesheet" href="../style.css">
+  <script defer src="../main.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1><span class="boughaba">Boughaba</span> <span class="kids">Kids</span></h1>
+    <a href="../index.html" class="back-btn">🏠</a>
+  </header>
+
+  <main>
+    <h2>📘 الدروس والاختبارات</h2>
+    <p>اختر درسًا وتعلم، ثم اختبر نفسك!</p>
+
+    <section id="lessons"></section>
+
+    <section id="quiz" hidden>
+      <h3 id="quiz-title"></h3>
+      <div id="quiz-question"></div>
+      <div id="quiz-options"></div>
+      <button id="next-btn">التالي</button>
+    </section>
+  </main>
+
+  <footer>
+    <small>© 2025 Boughaba Kids</small>
+  </footer>
+
+  <script>
+    const lessonsData = [
+      {
+        id: 1,
+        title: "الألوان 🌈",
+        content: "الألوان هي ما نراه في الأشياء حولنا. الأحمر، الأزرق، الأخضر...",
+        quiz: [
+          { q: "ما لون السماء؟", options: ["أخضر", "أزرق", "أحمر"], answer: 1 },
+          { q: "ما لون العشب؟", options: ["أخضر", "أصفر", "أسود"], answer: 0 }
+        ]
+      },
+      {
+        id: 2,
+        title: "الأرقام 🔢",
+        content: "الأرقام تساعدنا على العد. ١، ٢، ٣، ٤...",
+        quiz: [
+          { q: "ما بعد الرقم ٣؟", options: ["٤", "٥", "٢"], answer: 0 },
+          { q: "كم عدد أصابع اليد؟", options: ["٤", "٥", "٦"], answer: 1 }
+        ]
+      }
+    ];
+
+    const lessonsDiv = document.getElementById("lessons");
+    const quizSection = document.getElementById("quiz");
+    const quizTitle = document.getElementById("quiz-title");
+    const quizQuestion = document.getElementById("quiz-question");
+    const quizOptions = document.getElementById("quiz-options");
+    const nextBtn = document.getElementById("next-btn");
+
+    let currentLesson = null;
+    let currentQuestion = 0;
+    let score = 0;
+
+    function renderLessons() {
+      lessonsDiv.innerHTML = lessonsData
+        .map(
+          (l) => `
+          <div class="lesson-card">
+            <h3>${l.title}</h3>
+            <p>${l.content}</p>
+            <button onclick="startQuiz(${l.id})">ابدأ الاختبار</button>
+          </div>
+        `
+        )
+        .join("");
+    }
+
+    function startQuiz(id) {
+      currentLesson = lessonsData.find((l) => l.id === id);
+      currentQuestion = 0;
+      score = 0;
+      lessonsDiv.hidden = true;
+      quizSection.hidden = false;
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = currentLesson.quiz[currentQuestion];
+      quizTitle.textContent = currentLesson.title;
+      quizQuestion.textContent = q.q;
+      quizOptions.innerHTML = q.options
+        .map(
+          (opt, i) =>
+            `<button class="opt-btn" onclick="selectOption(${i})">${opt}</button>`
+        )
+        .join("");
+    }
+
+    function selectOption(i) {
+      const correct = currentLesson.quiz[currentQuestion].answer;
+      if (i === correct) score++;
+      currentQuestion++;
+      if (currentQuestion < currentLesson.quiz.length) showQuestion();
+      else finishQuiz();
+    }
+
+    function finishQuiz() {
+      quizQuestion.textContent = `انتهى الاختبار! نتيجتك: ${score}/${currentLesson.quiz.length}`;
+      quizOptions.innerHTML = "";
+      nextBtn.hidden = false;
+      nextBtn.onclick = () => {
+        quizSection.hidden = true;
+        lessonsDiv.hidden = false;
+        nextBtn.hidden = true;
+      };
+    }
+
+    document.addEventListener("DOMContentLoaded", renderLessons);
+  </script>
+</body>
+</html>

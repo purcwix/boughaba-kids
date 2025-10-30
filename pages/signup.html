@@ -1,0 +1,77 @@
+<!-- register student / teacher -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧑‍🏫 التسجيل | Boughaba Kids</title>
+  <link rel="stylesheet" href="../style.css">
+  <script defer src="../main.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1><span class="boughaba">Boughaba</span> <span class="kids">Kids</span></h1>
+    <a href="../index.html" class="back-btn">🏠</a>
+  </header>
+
+  <main>
+    <h2>🧑‍🏫 التسجيل</h2>
+    <p>اختر دورك وسجّل معلوماتك!</p>
+
+    <form id="signupForm">
+      <label>الاسم:</label>
+      <input type="text" id="name" required>
+
+      <label>الدور:</label>
+      <select id="role">
+        <option value="student">طالب 🎒</option>
+        <option value="teacher">أستاذ 👩‍🏫</option>
+      </select>
+
+      <button type="submit">تسجيل</button>
+    </form>
+
+    <div id="currentUser"></div>
+  </main>
+
+  <footer>
+    <small>© 2025 Boughaba Kids</small>
+  </footer>
+
+  <script>
+    const form = document.getElementById("signupForm");
+    const nameInput = document.getElementById("name");
+    const roleInput = document.getElementById("role");
+    const currentUserDiv = document.getElementById("currentUser");
+
+    function updateCurrentUser() {
+      const u = JSON.parse(localStorage.getItem("user") || "null");
+      if (u) {
+        currentUserDiv.innerHTML = `
+          <p>مرحبًا <strong>${u.name}</strong>! (${u.role === "teacher" ? "أستاذ" : "طالب"})</p>
+          <button onclick="logout()">تسجيل الخروج</button>`;
+      } else {
+        currentUserDiv.innerHTML = "<p>لم تقم بالتسجيل بعد.</p>";
+      }
+    }
+
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const user = {
+        name: nameInput.value.trim(),
+        role: roleInput.value
+      };
+      localStorage.setItem("user", JSON.stringify(user));
+      alert("تم التسجيل بنجاح! 🎉");
+      updateCurrentUser();
+    };
+
+    function logout() {
+      localStorage.removeItem("user");
+      updateCurrentUser();
+    }
+
+    document.addEventListener("DOMContentLoaded", updateCurrentUser);
+  </script>
+</body>
+</html>

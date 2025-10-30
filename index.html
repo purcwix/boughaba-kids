@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boughaba Kids</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="main.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <img src="assets/logo.png" alt="Boughaba Kids" class="logo">
+    <h1><span class="boughaba">Boughaba</span> <span class="kids">Kids</span></h1>
+    <button id="settings-btn" title="الإعدادات">⚙️</button>
+  </header>
+
+  <section id="settings-panel" hidden>
+    <h3>⚙️ الإعدادات</h3>
+    <button onclick="toggleTheme()">🌓 تبديل المظهر</button>
+    <button onclick="clearData()">🗑️ حذف البيانات المحلية</button>
+  </section>
+
+  <main>
+    <p class="welcome-text">
+      مرحباً بكم في عالم <b>Boughaba Kids</b> — منصة تجمع بين الدراسة، الألعاب، والمشاركة!
+    </p>
+
+    <nav class="menu">
+      <a href="pages/people.html" class="menu-btn">👥 الناس</a>
+      <a href="pages/studies.html" class="menu-btn">📘 الدروس</a>
+      <a href="pages/games.html" class="menu-btn">🎮 الألعاب</a>
+      <a href="pages/shares.html" class="menu-btn">📤 المشاركات</a>
+      <a href="pages/signup.html" class="menu-btn">📝 التسجيل</a>
+    </nav>
+  </main>
+
+  <footer>
+    <small>© 2025 Boughaba Kids — صنع بالحب وبدون خوادم 💚</small>
+  </footer>
+</body>
+</html>

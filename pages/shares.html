@@ -1,0 +1,86 @@
+<!-- social feed -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📸 المشاركات | Boughaba Kids</title>
+  <link rel="stylesheet" href="../style.css">
+  <script defer src="../main.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1><span class="boughaba">Boughaba</span> <span class="kids">Kids</span></h1>
+    <a href="../index.html" class="back-btn">🏠</a>
+  </header>
+
+  <main>
+    <h2>📸 المشاركات</h2>
+    <p>شارك صورك، رسوماتك، أفكارك أو حتى ألعابك!</p>
+
+    <div id="share-form">
+      <textarea id="postText" placeholder="ماذا تريد أن تشارك؟"></textarea>
+      <input type="url" id="postImage" placeholder="رابط الصورة (اختياري)">
+      <button id="postBtn">نشر</button>
+    </div>
+
+    <section id="feed"></section>
+  </main>
+
+  <footer>
+    <small>© 2025 Boughaba Kids</small>
+  </footer>
+
+  <script>
+    const postBtn = document.getElementById("postBtn");
+    const postText = document.getElementById("postText");
+    const postImage = document.getElementById("postImage");
+    const feed = document.getElementById("feed");
+
+    let posts = JSON.parse(localStorage.getItem("posts") || "[]");
+
+    function renderFeed() {
+      if (!posts.length) {
+        feed.innerHTML = "<p>لا توجد مشاركات بعد.</p>";
+        return;
+      }
+      feed.innerHTML = posts
+        .map(
+          (p) => `
+        <div class="post">
+          <div class="post-header">${p.user || "مجهول"} 🧒</div>
+          <p>${p.text}</p>
+          ${p.img ? `<img src="${p.img}" alt="صورة المشاركة">` : ""}
+          <div class="post-time">${p.time}</div>
+        </div>`
+        )
+        .reverse()
+        .join("");
+    }
+
+    postBtn.onclick = () => {
+      const text = postText.value.trim();
+      const img = postImage.value.trim();
+      if (!text) return alert("اكتب شيئًا للمشاركة!");
+
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const name = user.name || "طالب مجهول";
+
+      const newPost = {
+        user: name,
+        text,
+        img,
+        time: new Date().toLocaleString("ar-DZ")
+      };
+
+      posts.push(newPost);
+      localStorage.setItem("posts", JSON.stringify(posts));
+      postText.value = "";
+      postImage.value = "";
+      renderFeed();
+    };
+
+    document.addEventListener("DOMContentLoaded", renderFeed);
+  </script>
+</body>
+</html>

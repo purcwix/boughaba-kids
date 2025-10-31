@@ -1,86 +1,556 @@
-<!-- social feed -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>📸 المشاركات | Boughaba Kids</title>
   <link rel="stylesheet" href="../style.css">
-  <script defer src="../main.js"></script>
+  <style>
+    :root{--accent:#ff4d6d;--muted:#8b8b8b}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:#fafafa;color:#111}
+    header.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.06);position:sticky;top:0;z-index:10}
+    header.topbar h1{margin:0;font-size:18px}
+    header.topbar .back-btn{font-size:20px;text-decoration:none}
+    main{max-width:720px;margin:16px auto;padding:0 12px}
+    #composer.card{background:#fff;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(10,10,10,.04)}
+    #composer textarea{width:100%;min-height:64px;padding:10px;border-radius:8px;border:1px solid #eee;resize:vertical}
+    .composer-controls{display:flex;gap:8px;align-items:center;margin-top:8px}
+    .btn{padding:8px 12px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer}
+    .btn.secondary{background:#fff;border:1px solid #eee;color:#111}
+    input[type="file"]{display:block}
+    #feed{display:flex;flex-direction:column;gap:12px}
+    .post{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(10,10,10,.04)}
+    .post .meta{display:flex;gap:10px;align-items:center;padding:10px}
+    .avatar{width:40px;height:40px;border-radius:50%;background:#ddd;flex:0 0 40px}
+    .meta .who{font-weight:600}
+    .img-wrap{width:100%;background:#eee;aspect-ratio:4/3;display:block;overflow:hidden}
+    .img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+    .actions{display:flex;align-items:center;gap:8px;padding:8px 10px}
+    .actions button{background:none;border:none;cursor:pointer;font-size:16px}
+    .caption{padding:0 10px 8px;color:#222}
+    .comments{padding:0 10px 12px}
+    .comment{font-size:14px;color:#444;margin-top:6px}
+    .comment-input{display:flex;gap:6px;padding:10px;border-top:1px solid #f6f6f6}
+    .comment-input input{flex:1;padding:8px;border-radius:8px;border:1px solid #eee}
+    .time{font-size:12px;color:var(--muted)}
+    .empty{padding:18px;text-align:center;color:var(--muted);background:#fff;border-radius:12px}
+    /* modal */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+    .modal.open{display:flex}
+    .modal .sheet{background:#fff;border-radius:12px;max-width:900px;width:100;max-height:90vh;overflow:auto}
+    .modal .sheet img{width:100%;height:auto;display:block}
+    @media(min-width:900px){
+      main{max-width:980px}
+    }
+  </style>
 </head>
 <body>
   <header class="topbar">
     <h1><span class="boughaba">Boughaba</span> <span class="kids">Kids</span></h1>
-    <a href="../index.html" class="back-btn">🏠</a>
+    <a href="../index.html" class="back-btn" aria-label="العودة إلى الصفحة الرئيسية">🏠</a>
   </header>
 
   <main>
     <h2>📸 المشاركات</h2>
-    <p>شارك صورك، رسوماتك، أفكارك أو حتى ألعابك!</p>
+    <p>شارك صورك ورسوماتك مع الصف — الصور تُخزّن محليًا على جهازك باستخدام IndexedDB (أكثر سعة من localStorage).</p>
 
-    <div id="share-form">
-      <textarea id="postText" placeholder="ماذا تريد أن تشارك؟"></textarea>
-      <input type="url" id="postImage" placeholder="رابط الصورة (اختياري)">
-      <button id="postBtn">نشر</button>
-    </div>
+    <section id="composer" class="card" aria-label="منشئ المشاركة">
+      <label for="postText" style="display:block;font-weight:600;margin-bottom:6px">ماذا تريد أن تشارك؟</label>
+      <textarea id="postText" placeholder="اكتب وصفًا أو تعليقًا..." aria-label="نص المشاركة"></textarea>
 
-    <section id="feed"></section>
+      <div class="composer-controls">
+        <div style="flex:1">
+          <input id="postFile" type="file" accept="image/*" aria-label="ارفع صورة">
+          <small style="color:var(--muted)">يمكنك رفع صورة من جهازك. لإرفاق رابط استخدم الحقل الموجود بالأسفل.</small>
+        </div>
+        <button id="postBtn" class="btn" aria-live="polite">نشر</button>
+      </div>
+
+      <div style="margin-top:8px">
+        <label for="postUrl" style="font-size:13px;color:var(--muted)">أو لصق رابط صورة (اختياري)</label>
+        <input id="postUrl" type="url" placeholder="https://example.com/image.jpg" style="width:100%;padding:8px;border-radius:8px;border:1px solid #eee;margin-top:6px" aria-label="رابط الصورة">
+      </div>
+    </section>
+
+    <section id="feed" aria-live="polite"></section>
+    <div id="empty" class="empty" style="display:none">لا توجد مشاركات بعد — كن أول من يشارك!</div>
   </main>
 
-  <footer>
-    <small>© 2025 Boughaba Kids</small>
+  <footer style="max-width:720px;margin:18px auto;padding:0 12px;color:#666;font-size:13px">
+    <small>© 2025 Boughaba Kids — المحتوى مخزن محليًا على جهازك فقط</small>
   </footer>
 
+  <!-- modal single-post view -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="sheet" role="document">
+      <div style="padding:10px;display:flex;justify-content:flex-end">
+        <button id="modalClose" class="btn secondary" aria-label="إغلاق">إغلاق</button>
+      </div>
+      <div id="modalContent" style="padding:0 10px 10px"></div>
+    </div>
+  </div>
+
   <script>
-    const postBtn = document.getElementById("postBtn");
-    const postText = document.getElementById("postText");
-    const postImage = document.getElementById("postImage");
-    const feed = document.getElementById("feed");
+  // pages/socials.html — client-only feed using IndexedDB (no localStorage)
+  (function () {
+    'use strict';
 
-    let posts = JSON.parse(localStorage.getItem("posts") || "[]");
+    const DB_NAME = 'boughaba_kids_db';
+    const DB_VERSION = 1;
+    const STORE = 'posts';
 
-    function renderFeed() {
-      if (!posts.length) {
-        feed.innerHTML = "<p>لا توجد مشاركات بعد.</p>";
-        return;
-      }
-      feed.innerHTML = posts
-        .map(
-          (p) => `
-        <div class="post">
-          <div class="post-header">${p.user || "مجهول"} 🧒</div>
-          <p>${p.text}</p>
-          ${p.img ? `<img src="${p.img}" alt="صورة المشاركة">` : ""}
-          <div class="post-time">${p.time}</div>
-        </div>`
-        )
-        .reverse()
-        .join("");
+    // DOM
+    const postText = document.getElementById('postText');
+    const postFile = document.getElementById('postFile');
+    const postUrl = document.getElementById('postUrl');
+    const postBtn = document.getElementById('postBtn');
+    const feed = document.getElementById('feed');
+    const emptyBox = document.getElementById('empty');
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modalContent');
+    const modalClose = document.getElementById('modalClose');
+
+    // in-memory cache for ordering and quick access
+    let posts = [];
+
+    // open DB
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE)) {
+            const os = db.createObjectStore(STORE, { keyPath: 'id' });
+            os.createIndex('createdAt', 'createdAt');
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
     }
 
-    postBtn.onclick = () => {
-      const text = postText.value.trim();
-      const img = postImage.value.trim();
-      if (!text) return alert("اكتب شيئًا للمشاركة!");
+    async function withStore(mode, callback) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, mode);
+        const store = tx.objectStore(STORE);
+        let result;
+        try {
+          result = callback(store);
+        } catch (err) {
+          reject(err);
+        }
+        tx.oncomplete = () => resolve(result);
+        tx.onerror = () => reject(tx.error);
+      });
+    }
 
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const name = user.name || "طالب مجهول";
+    async function addPostToDB(post) {
+      return withStore('readwrite', store => store.add(post));
+    }
+
+    async function updatePostInDB(post) {
+      return withStore('readwrite', store => store.put(post));
+    }
+
+    async function deletePostFromDB(id) {
+      return withStore('readwrite', store => store.delete(id));
+    }
+
+    async function getAllPostsFromDB() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const db = await openDB();
+          const tx = db.transaction(STORE, 'readonly');
+          const store = tx.objectStore(STORE);
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        } catch (e) {
+          reject(e);
+        }
+      });
+    }
+
+    function id() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // create DOM node for a post
+    function createPostNode(p) {
+      const article = document.createElement('article');
+      article.className = 'post';
+      article.dataset.id = p.id;
+
+      // meta
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.setAttribute('aria-hidden', 'true');
+      if (p.user && p.user.avatarColor) avatar.style.background = p.user.avatarColor;
+      const who = document.createElement('div');
+      who.innerHTML = `<div class="who">${escapeHtml(p.user?.name || 'طالب')}</div><div class="time">${new Date(p.createdAt).toLocaleString('ar-DZ')}</div>`;
+      meta.appendChild(avatar);
+      meta.appendChild(who);
+      article.appendChild(meta);
+
+      // caption
+      if (p.caption) {
+        const cap = document.createElement('div');
+        cap.className = 'caption';
+        cap.textContent = p.caption;
+        article.appendChild(cap);
+      }
+
+      // image: either blob stored in DB or external URL
+      if (p.imageBlob) {
+        const wrap = document.createElement('div');
+        wrap.className = 'img-wrap';
+        const img = document.createElement('img');
+        img.alt = 'صورة المشاركة';
+        img.loading = 'lazy';
+        // create object URL and revoke after load to avoid leaks
+        try {
+          const url = URL.createObjectURL(p.imageBlob);
+          img.src = url;
+          img.addEventListener('load', () => {
+            try { URL.revokeObjectURL(url); } catch (e) { /* ignore */ }
+          });
+        } catch (e) {
+          img.style.display = 'none';
+        }
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', () => openModal(p.id));
+        wrap.appendChild(img);
+        article.appendChild(wrap);
+      } else if (p.imageUrl) {
+        const wrap = document.createElement('div');
+        wrap.className = 'img-wrap';
+        const img = document.createElement('img');
+        img.src = p.imageUrl;
+        img.alt = 'صورة المشاركة';
+        img.loading = 'lazy';
+        img.onerror = () => { img.style.display = 'none'; };
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', () => openModal(p.id));
+        wrap.appendChild(img);
+        article.appendChild(wrap);
+      }
+
+      // actions
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+
+      const likeBtn = document.createElement('button');
+      likeBtn.className = 'like-btn';
+      likeBtn.type = 'button';
+      likeBtn.setAttribute('aria-label', 'إعجاب');
+      likeBtn.textContent = `♥ ${p.likes || 0}`;
+      if (p.likedByMe) likeBtn.style.color = 'var(--accent)';
+      actions.appendChild(likeBtn);
+
+      const viewBtn = document.createElement('button');
+      viewBtn.className = 'view-btn';
+      viewBtn.type = 'button';
+      viewBtn.setAttribute('aria-label', 'عرض');
+      viewBtn.textContent = '🔍';
+      actions.appendChild(viewBtn);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete-btn';
+      delBtn.type = 'button';
+      delBtn.setAttribute('aria-label', 'حذف المشاركة');
+      delBtn.textContent = '🗑️';
+      actions.appendChild(delBtn);
+
+      article.appendChild(actions);
+
+      // comments preview
+      const commentsWrap = document.createElement('div');
+      commentsWrap.className = 'comments';
+      (p.comments || []).slice(-3).forEach(c => {
+        const cEl = document.createElement('div');
+        cEl.className = 'comment';
+        cEl.textContent = c.text;
+        commentsWrap.appendChild(cEl);
+      });
+      article.appendChild(commentsWrap);
+
+      // comment input
+      const commentInput = document.createElement('div');
+      commentInput.className = 'comment-input';
+      const input = document.createElement('input');
+      input.className = 'comment-text';
+      input.type = 'text';
+      input.placeholder = 'أضف تعليقًا...';
+      input.setAttribute('aria-label', 'نص التعليق');
+      const addBtn = document.createElement('button');
+      addBtn.className = 'comment-add';
+      addBtn.type = 'button';
+      addBtn.textContent = 'نشر';
+      commentInput.appendChild(input);
+      commentInput.appendChild(addBtn);
+      article.appendChild(commentInput);
+
+      return article;
+    }
+
+    // render all posts (newest first)
+    async function renderAll() {
+      feed.innerHTML = '';
+      posts = await getAllPostsFromDB();
+      if (!posts || posts.length === 0) {
+        emptyBox.style.display = 'block';
+        return;
+      } else {
+        emptyBox.style.display = 'none';
+      }
+      // sort by createdAt descending (newest first)
+      posts.sort((a, b) => b.createdAt - a.createdAt);
+      posts.forEach(p => {
+        const node = createPostNode(p);
+        feed.appendChild(node);
+      });
+    }
+
+    function prependPostToUI(p) {
+      const node = createPostNode(p);
+      feed.prepend(node);
+      emptyBox.style.display = 'none';
+    }
+
+    // event delegation for feed actions
+    feed.addEventListener('click', async (e) => {
+      const card = e.target.closest('.post');
+      if (!card) return;
+      const pid = card.dataset.id;
+      const idx = posts.findIndex(x => x.id === pid);
+      if (idx === -1) {
+        // try reloading posts if cache mismatch
+        posts = await getAllPostsFromDB();
+      }
+      const p = posts.find(x => x.id === pid);
+      if (!p) return;
+
+      if (e.target.classList.contains('like-btn')) {
+        p.likedByMe = !p.likedByMe;
+        p.likes = (p.likes || 0) + (p.likedByMe ? 1 : -1);
+        await updatePostInDB(p);
+        // update UI button
+        e.target.textContent = `♥ ${p.likes || 0}`;
+        e.target.style.color = p.likedByMe ? 'var(--accent)' : '';
+      } else if (e.target.classList.contains('delete-btn')) {
+        if (confirm('هل تريد حذف هذه المشاركة؟')) {
+          await deletePostFromDB(p.id);
+          // remove from in-memory and UI
+          posts = posts.filter(x => x.id !== p.id);
+          card.remove();
+          if (posts.length === 0) emptyBox.style.display = 'block';
+        }
+      } else if (e.target.classList.contains('view-btn')) {
+        openModal(p.id);
+      } else if (e.target.classList.contains('comment-add')) {
+        const input = card.querySelector('.comment-text');
+        const text = input.value.trim();
+        if (!text) return;
+        const comment = { id: id(), text, createdAt: Date.now() };
+        p.comments = p.comments || [];
+        p.comments.push(comment);
+        await updatePostInDB(p);
+        // append comment to UI
+        const cEl = document.createElement('div');
+        cEl.className = 'comment';
+        cEl.textContent = text;
+        const commentsWrap = card.querySelector('.comments');
+        commentsWrap.appendChild(cEl);
+        input.value = '';
+      }
+    });
+
+    // modal
+    async function openModal(postId) {
+      const p = (await getAllPostsFromDB()).find(x => x.id === postId);
+      if (!p) return;
+      modalContent.innerHTML = '';
+      const header = document.createElement('div');
+      header.style.padding = '10px';
+      header.innerHTML = `<div style="font-weight:700">${escapeHtml(p.user?.name || 'طالب')}</div><div class="time" style="color:#666">${new Date(p.createdAt).toLocaleString('ar-DZ')}</div>`;
+      modalContent.appendChild(header);
+      if (p.caption) {
+        const c = document.createElement('div');
+        c.style.padding = '0 10px 10px';
+        c.textContent = p.caption;
+        modalContent.appendChild(c);
+      }
+      if (p.imageBlob) {
+        const img = document.createElement('img');
+        try {
+          const url = URL.createObjectURL(p.imageBlob);
+          img.src = url;
+          img.alt = 'صورة المشاركة';
+          img.addEventListener('load', () => {
+            try { URL.revokeObjectURL(url); } catch (e) { /* ignore */ }
+          });
+          modalContent.appendChild(img);
+        } catch (e) {
+          // fallback: nothing
+        }
+      } else if (p.imageUrl) {
+        const img = document.createElement('img');
+        img.src = p.imageUrl;
+        img.alt = 'صورة المشاركة';
+        modalContent.appendChild(img);
+      }
+      if (p.comments && p.comments.length) {
+        const list = document.createElement('div');
+        list.style.padding = '10px';
+        p.comments.slice().reverse().forEach(c => {
+          const cEl = document.createElement('div');
+          cEl.className = 'comment';
+          cEl.textContent = c.text;
+          list.appendChild(cEl);
+        });
+        modalContent.appendChild(list);
+      }
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    function closeModal() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    // resize/compress file to blob using canvas, return Blob (JPEG)
+    function fileToCompressedBlob(file, maxWidth = 1080, quality = 0.8) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('فشل قراءة الملف'));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('ملف الصورة غير صالح'));
+          img.onload = () => {
+            const scale = Math.min(1, maxWidth / img.naturalWidth);
+            const w = Math.round(img.naturalWidth * scale);
+            const h = Math.round(img.naturalHeight * scale);
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            // toBlob is async and returns a Blob (JPEG)
+            canvas.toBlob(blob => {
+              if (blob) resolve(blob);
+              else reject(new Error('فشل تحويل الصورة إلى Blob'));
+            }, 'image/jpeg', quality);
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // handle new post creation
+    postBtn.addEventListener('click', async () => {
+      const caption = postText.value.trim();
+      const url = postUrl.value.trim();
+      const file = postFile.files && postFile.files[0];
+
+      if (!caption && !file && !url) {
+        alert('اكتب تعليقًا أو أضف صورة/رابط للنشر.');
+        return;
+      }
+
+      postBtn.disabled = true;
+      postBtn.textContent = 'جارٍ النشر...';
+
+      let imageBlob = null;
+      let imageUrl = null;
+      try {
+        if (file) {
+          if (file.size > 8_000_000) {
+            if (!confirm('الصورة كبيرة للغاية وقد تملأ التخزين. متابعة؟')) {
+              postBtn.disabled = false;
+              postBtn.textContent = 'نشر';
+              return;
+            }
+          }
+          // compress/resize and get a Blob to store in IndexedDB
+          imageBlob = await fileToCompressedBlob(file, 1080, 0.8);
+        } else if (url) {
+          imageUrl = url;
+        }
+      } catch (err) {
+        console.error('خطأ بمعالجة الصورة', err);
+        alert('فشل في معالجة الصورة. حاول بصورة أصغر أو رابط آخر.');
+        postBtn.disabled = false;
+        postBtn.textContent = 'نشر';
+        return;
+      }
 
       const newPost = {
-        user: name,
-        text,
-        img,
-        time: new Date().toLocaleString("ar-DZ")
+        id: id(),
+        user: { name: 'طالب', avatarColor: '#cfc' },
+        caption,
+        // store either imageBlob (Blob) or imageUrl (string)
+        imageBlob: imageBlob || null,
+        imageUrl: imageUrl || null,
+        likes: 0,
+        likedByMe: false,
+        comments: [],
+        createdAt: Date.now()
       };
 
-      posts.push(newPost);
-      localStorage.setItem("posts", JSON.stringify(posts));
-      postText.value = "";
-      postImage.value = "";
-      renderFeed();
-    };
+      try {
+        await addPostToDB(newPost);
+        // update in-memory cache
+        posts.unshift(newPost);
+        prependPostToUI(newPost);
+      } catch (e) {
+        console.error('فشل إضافة المشاركة إلى قاعدة البيانات', e);
+        alert('حدث خطأ أثناء حفظ المشاركة. حاول مرة أخرى.');
+      }
 
-    document.addEventListener("DOMContentLoaded", renderFeed);
+      // clear composer
+      postText.value = '';
+      postFile.value = '';
+      postUrl.value = '';
+      postBtn.disabled = false;
+      postBtn.textContent = 'نشر';
+    });
+
+    // initial render
+    (async function init() {
+      try {
+        posts = await getAllPostsFromDB();
+        // sort newest-first
+        posts.sort((a, b) => b.createdAt - a.createdAt);
+        if (!posts || posts.length === 0) {
+          emptyBox.style.display = 'block';
+        } else {
+          posts.forEach(p => feed.appendChild(createPostNode(p)));
+          emptyBox.style.display = 'none';
+        }
+      } catch (e) {
+        console.error('فشل تحميل المشاركات', e);
+        emptyBox.style.display = 'block';
+      }
+
+      // expose small API for debugging if needed
+      window.__BoughabaIDB = { getAllPostsFromDB, addPostToDB, updatePostInDB, deletePostFromDB };
+    })();
+
+  })();
   </script>
 </body>
 </html>
